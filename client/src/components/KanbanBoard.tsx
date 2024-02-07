@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Column } from "../types";
+import { Column, Id, Task } from "../types";
 import "../App.css";
 import ColumnContainer from "./ColumnContainer";
 import {
@@ -27,6 +27,8 @@ function KanbanBoard() {
     },
   ]);
 
+  const [tasks, setTasks] = useState<Task[] | []>([]);
+
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
 
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
@@ -53,8 +55,22 @@ function KanbanBoard() {
       const overColumnIndex = columns.findIndex(
         (col) => col.id === overColumnId
       );
-      return arrayMove(columns, activeColumnIndex, overColumnIndex)
+      return arrayMove(columns, activeColumnIndex, overColumnIndex);
     });
+  };
+  const createTask = (columnId: Id) => {
+    const newTask: Task = {
+      id: Math.random() * (1000 - 1) + 1,
+      columnId,
+      title: "New task",
+      content: "",
+    };
+
+    setTasks([...tasks, newTask]);
+  };
+  const deleteTask = (taskId: Id) => {
+    const newTasks = tasks.filter((task) => taskId !== task.id);
+    setTasks(newTasks);
   };
 
   return (
@@ -64,14 +80,27 @@ function KanbanBoard() {
           <div className="flex flex-row gap-4">
             <SortableContext items={columnsId}>
               {columns.map((column) => (
-                <ColumnContainer key={column.id} column={column} />
+                <ColumnContainer
+                  key={column.id}
+                  column={column}
+                  createTask={createTask}
+                  tasks={tasks.filter((task) => task.columnId === column.id)}
+                  deleteTask={deleteTask}
+                />
               ))}
             </SortableContext>
           </div>
         </div>
         {createPortal(
           <DragOverlay>
-            {activeColumn && <ColumnContainer column={activeColumn} />}
+            {activeColumn && (
+              <ColumnContainer
+                column={activeColumn}
+                createTask={createTask}
+                tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
+                deleteTask={deleteTask}
+              />
+            )}
           </DragOverlay>,
           document.body
         )}
