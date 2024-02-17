@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Id, Task } from "../types";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Props {
   task: Task;
@@ -16,43 +18,93 @@ function TaskCard(props: Props) {
   const toggleEditMode = () => {
     setEditMode((prev) => !prev);
     setMouseIsOver(false);
+  };
+
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "Task",
+      task,
+    },
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="
+        opacity-30
+      bg-mainBackgroundColor
+          p-2.5
+          h-[100px]
+          min-h-[100px]
+          items-center
+          flex
+          text-left
+          rounded-xl
+          border-2
+          border-rose-500
+          cursor-grab
+          relative"
+      >
+        {task.title}
+      </div>
+    );
   }
 
   if (editMode) {
-    return <div
-    className="bg-mainBackgroundColor
-    p-2.5
-    h-[100px]
-    min-h-[100px]
-    items-center
-    flex
-    text-left
-    rounded-xl
-    hover:ring-2
-    hover:ring-inset
-    hover:ring-rose-500
-    cursor-grab
-    relative
-  "
-  >
-    <textarea className="
-    h-[90%]
-    w-full resize-none
-    rounded bg-transparent
-    text-white focus:outline-none
-    "
-    value={task.title}
-    autoFocus
-    placeholder="Task content here"
-    onBlur={toggleEditMode}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" && e.shiftKey) toggleEditMode();
-    }}
-    onChange={(e) => updateTask(task.id, e.target.value)}
-    >
-
-    </textarea>
-  </div>
+    return (
+      <div
+        className="bg-mainBackgroundColor
+          p-2.5
+          h-[100px]
+          min-h-[100px]
+          items-center
+          flex
+          text-left
+          rounded-xl
+          hover:ring-2
+          hover:ring-inset
+          hover:ring-rose-500
+          cursor-grab
+          relative
+        "
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+      >
+        <textarea
+          className="
+          h-[90%]
+          w-full resize-none
+          rounded bg-transparent
+          text-white focus:outline-none
+          "
+          value={task.title}
+          autoFocus
+          placeholder="Task content here"
+          onBlur={toggleEditMode}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && e.shiftKey) toggleEditMode();
+          }}
+          onChange={(e) => updateTask(task.id, e.target.value)}
+        ></textarea>
+      </div>
+    );
   }
 
   return (
@@ -71,6 +123,10 @@ function TaskCard(props: Props) {
       cursor-grab
       relative task
     "
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={toggleEditMode}
       onMouseEnter={() => {
         setMouseIsOver(true);
@@ -79,12 +135,14 @@ function TaskCard(props: Props) {
         setMouseIsOver(false);
       }}
     >
-      <p className="my-auto h-[90%]
+      <p
+        className="my-auto h-[90%]
         w-full overflow-y-auto
         overflow-x-hidden
         whitespace-pre-wrap
 
-      ">
+      "
+      >
         {task.title}
       </p>
       {mouseIsOver && (

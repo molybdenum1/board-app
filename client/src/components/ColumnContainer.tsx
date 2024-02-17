@@ -1,7 +1,8 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { Column, Id, Task } from "../types";
 import { CSS } from "@dnd-kit/utilities";
 import TaskCard from "./TaskCard";
+import { useMemo } from "react";
 
 interface Props {
   column: Column;
@@ -14,6 +15,8 @@ interface Props {
 
 function ColumnContainer(props: Props) {
   const { column, createTask, tasks, deleteTask, updateTask } = props;
+
+  const tasksIds = useMemo(() => tasks.map(task => task.id), [tasks])
 
   const {
     setNodeRef,
@@ -104,14 +107,16 @@ function ColumnContainer(props: Props) {
           overflow-x-hidden
           overflow-y-auto"
       >
-        {tasks.map((task) => (
-          <TaskCard
-            key={task.id}
-            task={task}
-            deleteTask={deleteTask}
-            updateTask={updateTask}
-          />
-        ))}
+        <SortableContext items={tasksIds}>
+          {tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              deleteTask={deleteTask}
+              updateTask={updateTask}
+            />
+          ))}
+        </SortableContext>
       </div>
       <button
         className="
